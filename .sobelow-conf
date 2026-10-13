@@ -1,0 +1,17 @@
+# Sobelow is aimed at Phoenix applications. Eurostatx is a library, so there is
+# no router, and Config.HTTPS (which expects a Phoenix endpoint) does not apply.
+[
+  exit: :low,
+  format: "txt",
+  ignore: ["Config.HTTPS"],
+  ignore_files: [],
+  include_mix_tasks: false,
+  include_scripts: false,
+  out: nil,
+  private: false,
+  router: :none,
+  skip: false,
+  summary: false,
+  threshold: :low,
+  verbose: false
+]

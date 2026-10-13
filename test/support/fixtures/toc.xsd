@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="urn:eu.europa.ec.eurostat.navtree" xmlns:nt="urn:eu.europa.ec.eurostat.navtree" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="1.0">
+    <xs:element name="branch">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="nt:title" minOccurs="3" maxOccurs="3" />
+                <xs:element ref="nt:code" />
+                <xs:element ref="nt:children" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>     
+    <xs:element name="children">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+            	<xs:element ref="nt:branch" />
+                <xs:element ref="nt:leaf" />
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="code" type="xs:string" />
+    <xs:element name="dataEnd" type="xs:string">
+        <xs:annotation>
+            <xs:documentation>Oldest data.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="dataStart" type="xs:string">
+        <xs:annotation>
+            <xs:documentation>Most recent data.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="lastUpdate" type="xs:string">
+        <xs:annotation>
+            <xs:documentation>Last update of data.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="lastModified" type="xs:string">
+        <xs:annotation>
+            <xs:documentation>Last table structure change.</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+     <xs:element name="leaf">
+    <xs:complexType >
+        <xs:sequence>
+            <xs:element ref="nt:title" minOccurs="3" maxOccurs="3" />
+            <xs:element ref="nt:code" />
+            <xs:element ref="nt:lastUpdate" />
+            <xs:element ref="nt:lastModified" />
+            <xs:element ref="nt:dataStart" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="nt:dataEnd" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="nt:values" minOccurs="0" maxOccurs="1"/>
+            <xs:element ref="nt:source" minOccurs="0" maxOccurs="3" />
+            <xs:element ref="nt:unit" minOccurs="3" maxOccurs="3" />
+            <xs:element ref="nt:shortDescription" minOccurs="3" maxOccurs="3" />
+            <xs:element ref="nt:description" minOccurs="0" maxOccurs="3" />
+            <xs:element ref="nt:metadata" minOccurs="0" maxOccurs="2" />
+            <xs:element ref="nt:downloadLink" minOccurs="0" maxOccurs="2" />
+            <xs:element ref="nt:children" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="type" type="nt:leafType" use="required" />
+    </xs:complexType>
+    </xs:element>
+    <xs:element name="metadata">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="format" type="nt:metadataFormat" use="required" />
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="shortDescription">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="language" type="nt:language" use="required" />
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="description">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="language" type="nt:language" use="required" />
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="title">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="language" type="nt:language" use="required" />
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="tree">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="nt:branch" maxOccurs="unbounded" />
+            </xs:sequence>
+            <xs:attribute name="creationDate" type="xs:string" use="required" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="unit">
+        <xs:annotation>
+            <xs:documentation>Unit of measure</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="language" type="nt:language" use="required" />
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="source">
+        <xs:annotation>
+            <xs:documentation>Institutional source</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="language" type="nt:language" use="required" />
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="values" type="xs:string">
+        <xs:annotation>
+            <xs:documentation>Number of values</xs:documentation>
+        </xs:annotation>
+    </xs:element>
+    <xs:element name="downloadLink">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:anyURI">
+                    <xs:attribute name="format" type="nt:format" use="required" />
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:simpleType name="date">
+        <xs:annotation>
+            <xs:documentation>Union of xs:date and empty xs:string to allow empty elements.</xs:documentation>
+        </xs:annotation>
+        <xs:union memberTypes="nt:customDate">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="" />
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:union>
+    </xs:simpleType>
+    <xs:simpleType name="language">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="en" />
+            <xs:enumeration value="fr" />
+            <xs:enumeration value="de" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="type">
+        <xs:annotation>
+            <xs:documentation>'Tables' offers a selection of the most important Eurostat data in a user-friendly way. All data are presented in simple two- or three-dimensional tables. 'Database' contains the full range of public data available at Eurostat. They are presented in multi-dimensional tables with multiple selection features and export formats.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="table" />
+            <xs:enumeration value="dataset" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="metadataFormat">
+        <xs:annotation>
+            <xs:documentation>Format of the metadata link: html = Statistical Data and Metadata Exchange in a web page, sdmx = Statistical Data and Metadata Exchange (standard format).</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="html" />
+            <xs:enumeration value="sdmx" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="leafType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="dataset" />
+            <xs:enumeration value="table" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="format">
+        <xs:annotation>
+            <xs:documentation>Format of the dataset: tsv = Tab-Separated Values, dft = Discrete Fourier Transform (eva), sdmx = Statistical Data and Metadata Exchange.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="tsv" />
+            <xs:enumeration value="dft" />
+            <xs:enumeration value="sdmx" />
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="customDate">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="(0[1-9]|[12][0-9]|3[01])\.(0[1-9]|1[012])\.\d{4}" />
+        </xs:restriction>
+    </xs:simpleType>
+</xs:schema>

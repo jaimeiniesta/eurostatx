@@ -1,0 +1,211 @@
+# Exploring Datasets
+
+```elixir
+Mix.install([
+  # To try a local checkout use {:eurostatx, path: Path.join(__DIR__, "..")} instead
+  {:eurostatx, "~> 0.1"},
+  {:kino_explorer, "~> 0.1"}
+])
+```
+
+## Introduction
+
+This notebook shows how to find datasets, understand their structure and query them with the
+SDMX APIs, in any format. See the *Getting Started* notebook for the basics.
+
+```elixir
+alias Explorer.DataFrame, as: DF
+
+Eurostatx.Telemetry.Logger.attach(level: :info)
+```
+
+## The Table of Contents
+
+The table of contents is Eurostat's navigation tree: folders, datasets and pre-defined tables, with
+their last update, time coverage and number of values.
+
+```elixir
+{:ok, toc} = Eurostatx.Catalogue.toc()
+
+toc |> Enum.take(15) |> Eurostatx.DataFrame.from_records()
+```
+
+`Eurostatx.Catalogue.search/2` finds datasets and tables by code or title. Pass the table of
+contents to avoid downloading it again:
+
+```elixir
+{:ok, results} = Eurostatx.Catalogue.search("unemployment", toc: toc)
+
+results
+|> Eurostatx.DataFrame.from_records()
+|> DF.select(["code", "title", "type", "last_update", "data_start", "data_end", "values"])
+```
+
+## Every Dataset
+
+`Eurostatx.Datasets.list/1` lists every dataset with Eurostat's annotations: number of
+observations, oldest and latest periods, date of the last update...
+
+```elixir
+{:ok, datasets} = Eurostatx.Datasets.list()
+
+datasets_df =
+  datasets
+  |> Eurostatx.DataFrame.from_records()
+  |> DF.select(["id", "label", "type", "observations", "oldest_period", "latest_period", "data_updated_at"])
+```
+
+For example, the datasets updated most recently:
+
+```elixir
+datasets_df
+|> DF.sort_with(&[desc: &1["data_updated_at"]])
+|> DF.head(10)
+```
+
+## The Structure of a Dataset
+
+Let's explore `une_rt_m`, the monthly unemployment rate. Its **data structure** lists the
+dimensions in the order of the series keys, the time dimension and the attributes (such as the
+observation flags):
+
+```elixir
+{:ok, structure} = Eurostatx.Datasets.structure("une_rt_m")
+
+structure["dimensions"] |> Enum.map(&Map.take(&1, ["position", "id"]))
+```
+
+`Eurostatx.Datasets.values/2` gives the codes used by each dimension, with their labels:
+
+```elixir
+{:ok, dimensions} = Eurostatx.Datasets.values("une_rt_m")
+
+for dimension <- dimensions, value <- dimension["values"] do
+  %{dimension: dimension["id"], code: value["code"], name: value["name"]}
+end
+|> DF.new()
+```
+
+And `Eurostatx.Datasets.availability/2` the codes and time periods actually available:
+
+```elixir
+{:ok, availability} = Eurostatx.Datasets.availability("une_rt_m")
+
+{List.first(availability["TIME_PERIOD"]), List.last(availability["TIME_PERIOD"])}
+```
+
+## Code Lists
+
+The labels come from **code lists**, shared by many datasets. They may have more codes than the
+ones used by a dataset:
+
+```elixir
+{:ok, codes} = Eurostatx.Codelists.codes("sex", language: :fr)
+codes
+```
+
+## SDMX Data Queries
+
+`Eurostatx.Data` queries the SDMX 3.0 API (or SDMX 2.1 with `sdmx_version: "2.1"`). Filters work
+like in the Statistics API, and the response can be JSON-stat (the default), SDMX-CSV, TSV or
+SDMX-ML. `last_n` returns the last observations of each series:
+
+```elixir
+Eurostatx.Data.get_as_data_frame!("une_rt_m",
+  filters: [geo: ["EU27_2020", "ES", "DE"], age: "TOTAL", sex: "T", unit: "PC_ACT", s_adj: "SA"],
+  last_n: 3,
+  labels: true
+)
+```
+
+Series can also be selected with a **key**: the codes of the dimensions in the order of the data
+structure (`freq.s_adj.age.unit.sex.geo`). Missing trailing dimensions mean "all":
+
+```elixir
+{:ok, csv} = Eurostatx.Data.get("une_rt_m", key: "M.SA.TOTAL.PC_ACT.T.ES", last_n: 3, format: :csv)
+IO.puts(csv)
+```
+
+SDMX-CSV can be loaded straight into Explorer, which is the fastest way to handle big extractions:
+
+```elixir
+Eurostatx.DataFrame.from_csv(csv)
+```
+
+The Eurostat TSV format, inherited from the former bulk download, has one line per series:
+
+```elixir
+{:ok, tsv} =
+  Eurostatx.Data.get("une_rt_m",
+    filters: [geo: ["ES", "DE"], age: "TOTAL", sex: "T", unit: "PC_ACT", s_adj: "SA"],
+    start_period: "2026-01",
+    format: :tsv
+  )
+
+IO.puts(tsv)
+Eurostatx.DataFrame.from_tsv(tsv)
+```
+
+With SDMX-CSV 2.0 the labels can be added as columns:
+
+```elixir
+{:ok, csv} =
+  Eurostatx.Data.get("une_rt_m",
+    key: "M.SA.TOTAL.PC_ACT.T.ES",
+    last_n: 2,
+    format: :csv,
+    labels: :name,
+    language: :de
+  )
+
+IO.puts(csv)
+```
+
+## Other Structural Metadata
+
+`Eurostatx.Structure.get/3` returns any SDMX artefact as it is, for example the concept scheme of a
+dataset, which has the labels of its dimensions:
+
+```elixir
+{:ok, xml} = Eurostatx.Structure.get(:conceptscheme, "UNE_RT_M")
+String.slice(xml, 0, 1500)
+```
+
+## Latest Updates
+
+The RSS feed lists the datasets and code lists created, updated or deleted in the last 7 days:
+
+```elixir
+{:ok, %{"items" => items}} = Eurostatx.Catalogue.rss()
+
+items |> Eurostatx.DataFrame.from_records() |> DF.select(["pub_date", "code", "category", "description"])
+```
+
+## Big Extractions
+
+Extractions above 500,000 cells are processed asynchronously by Eurostat. Eurostatx waits for them
+transparently. With `async_timeout: 0` you get the key of the request and can fetch the data later
+with `Eurostatx.Async.await/2`. Comext datasets (`DS-` codes) are big, so this query is usually
+asynchronous (unless Eurostat has it cached):
+
+```elixir
+result =
+  Eurostatx.Data.get("DS-045409",
+    key: "A.FI.CA..2.SUPPLEMENTARY_QUANTITY",
+    sdmx_version: "2.1",
+    format: :csv,
+    async_timeout: 0
+  )
+
+csv =
+  case result do
+    {:ok, csv} -> csv
+    {:error, %Eurostatx.Error{type: :queued, request_id: id}} ->
+      {:ok, csv} = Eurostatx.Async.await(id, agency: :comext)
+      csv
+  end
+
+csv |> Eurostatx.DataFrame.from_csv() |> DF.head(5)
+```
+
+Eurostat asks to make **one request at a time**, and Eurostatx never makes concurrent requests.

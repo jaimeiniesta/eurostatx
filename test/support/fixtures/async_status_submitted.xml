@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<env:Envelope xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"><env:Header/><env:Body><ns0:asyncResponse xmlns:ns0="http://estat.ec.europa.eu/disschain/soap/asynchronous" xmlns:ns1="http://estat.ec.europa.eu/disschain/asynchronous"><ns1:status><ns1:key>1df91def-52a9-4fa9-853d-05e8bf0b6faf</ns1:key><ns1:status>SUBMITTED</ns1:status></ns1:status></ns0:asyncResponse></env:Body></env:Envelope>

@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="UTF-8"?><S:Fault xmlns:S="http://schemas.xmlsoap.org/soap/envelope/"><faultcode>150</faultcode><faultstring>INVALID_QUERY_DIMENSION_VALUE: Query is invalid as per its structure&apos;s definition. The following values for dimension are not allowed: GEO=XX.</faultstring></S:Fault>

@@ -1,0 +1,1 @@
+{ "error": [{"status": 400,"id": 150,"label": "INVALID_QUERY_DIMENSION_VALUE: Query is invalid as per its structure's definition. The following values for dimension are not allowed: TIME_PERIOD: 1900."}]}

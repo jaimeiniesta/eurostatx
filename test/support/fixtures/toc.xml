@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<nt:tree xmlns:nt="urn:eu.europa.ec.eurostat.navtree" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:eu.europa.ec.eurostat.navtree https://ec.europa.eu/eurostat/api/dissemination/catalogue/toc/TableOfContent.xsd" creationDate="20261013T0924">
+  <nt:branch>
+    <nt:title language="en">Database by themes</nt:title>
+    <nt:title language="fr">Base de données par thèmes</nt:title>
+    <nt:title language="de">Datenbank nach Themen</nt:title>
+    <nt:code>data</nt:code>
+    <nt:children>
+      <nt:branch>
+        <nt:title language="en">General and regional statistics</nt:title>
+        <nt:title language="fr">Statistiques générales et régionales</nt:title>
+        <nt:title language="de">Allgemeine und Regionalstatistiken</nt:title>
+        <nt:code>general</nt:code>
+        <nt:children>
+          <nt:branch>
+            <nt:title language="en">European and national indicators for short-term analysis</nt:title>
+            <nt:title language="fr">Indicateurs européens et nationaux pour l'analyse à court terme</nt:title>
+            <nt:title language="de">Europäische und nationale Indikatoren für konjunkturelle Analysen</nt:title>
+            <nt:code>euroind</nt:code>
+            <nt:children>
+              <nt:branch>
+                <nt:title language="en">Balance of payments</nt:title>
+                <nt:title language="fr">Balance des paiements</nt:title>
+                <nt:title language="de">Zahlungsbilanz</nt:title>
+                <nt:code>ei_bp</nt:code>
+                <nt:children>
+                  <nt:leaf type="table">
+                    <nt:title language="en">Current account - quarterly data</nt:title>
+                    <nt:title language="fr">Compte courant - données trimestrielles</nt:title>
+                    <nt:title language="de">Leistungsbilanz - vierteljährliche Daten</nt:title>
+                    <nt:code>ei_bpm6ca_q</nt:code>
+                    <nt:lastUpdate>02.10.2026</nt:lastUpdate>
+                    <nt:lastModified>02.10.2026</nt:lastModified>
+                    <nt:dataStart>1991-Q1</nt:dataStart>
+                    <nt:dataEnd>2026-Q2</nt:dataEnd>
+                    <nt:values>314789</nt:values>
+                    <nt:source language="en">Eurostat</nt:source>
+                    <nt:source language="fr">Eurostat</nt:source>
+                    <nt:source language="de">Eurostat</nt:source>
+                    <nt:unit language="en" />
+                    <nt:unit language="fr" />
+                    <nt:unit language="de" />
+                    <nt:shortDescription language="en" />
+                    <nt:shortDescription language="fr" />
+                    <nt:shortDescription language="de" />
+                    <nt:metadata format="html">https://ec.europa.eu/eurostat/cache/metadata/en/ei_bp_esms.htm</nt:metadata>
+                    <nt:metadata format="sdmx">https://ec.europa.eu/eurostat/api/dissemination/files?file=metadata/ei_bp_esms.sdmx.zip</nt:metadata>
+                    <nt:downloadLink format="tsv">https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/EI_BPM6CA_Q?format=tsv&amp;compressed=true</nt:downloadLink>
+                  </nt:leaf>
+                  <nt:leaf type="table">
+                    <nt:title language="en">Financial account - quarterly data</nt:title>
+                    <nt:title language="fr">Compte financier - données trimestrielles</nt:title>
+                    <nt:title language="de">Finanzierungskonto - vierteljährliche Daten</nt:title>
+                    <nt:code>ei_bpm6fa_q</nt:code>
+                    <nt:lastUpdate>02.10.2026</nt:lastUpdate>
+                    <nt:lastModified>01.10.2026</nt:lastModified>
+                    <nt:dataStart>1991-Q1</nt:dataStart>
+                    <nt:dataEnd>2026-Q2</nt:dataEnd>
+                    <nt:values>55918</nt:values>
+                    <nt:source language="en">Eurostat</nt:source>
+                    <nt:source language="fr">Eurostat</nt:source>
+                    <nt:source language="de">Eurostat</nt:source>
+                    <nt:unit language="en" />
+                    <nt:unit language="fr" />
+                    <nt:unit language="de" />
+                    <nt:shortDescription language="en" />
+                    <nt:shortDescription language="fr" />
+                    <nt:shortDescription language="de" />
+                    <nt:metadata format="html">https://ec.europa.eu/eurostat/cache/metadata/en/ei_bp_esms.htm</nt:metadata>
+                    <nt:metadata format="sdmx">https://ec.europa.eu/eurostat/api/dissemination/files?file=metadata/ei_bp_esms.sdmx.zip</nt:metadata>
+                    <nt:downloadLink format="tsv">https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/EI_BPM6FA_Q?format=tsv&amp;compressed=true</nt:downloadLink>
+                  </nt:leaf>
+                  </nt:children>
+              </nt:branch>
+              </nt:children>
+          </nt:branch>
+          </nt:children>
+      </nt:branch>
+      </nt:children>
+  </nt:branch>
+  </nt:tree>

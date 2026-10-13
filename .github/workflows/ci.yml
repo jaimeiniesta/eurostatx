@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MIX_ENV: test
+
+jobs:
+  lint:
+    name: Format, Credo and Sobelow
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          elixir-version: "1.20"
+          otp-version: "29"
+
+      - uses: actions/cache@v6
+        with:
+          path: |
+            deps
+            _build
+          key: mix-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            mix-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-
+
+      - run: mix deps.get
+      - run: mix format --check-formatted
+      - run: mix compile --warnings-as-errors
+      - run: mix credo --strict
+      - run: mix sobelow
+
+  test:
+    name: Test (Elixir ${{ matrix.elixir }}, OTP ${{ matrix.otp }})
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Oldest supported Elixir (the built-in JSON module needs 1.18)
+          - elixir: "1.18"
+            otp: "27"
+          - elixir: "1.19"
+            otp: "28"
+          - elixir: "1.20"
+            otp: "29"
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: erlef/setup-beam@v1
+        id: beam
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+
+      - uses: actions/cache@v6
+        with:
+          path: |
+            deps
+            _build
+          key: mix-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-${{ hashFiles('mix.lock') }}
+          restore-keys: |
+            mix-${{ runner.os }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}-
+
+      - run: mix deps.get
+      # Unit tests only: they use recorded responses, so CI does not depend on
+      # the Eurostat APIs being up (integration and restatapi tests are excluded).
+      - run: mix test

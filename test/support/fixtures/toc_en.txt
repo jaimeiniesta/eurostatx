@@ -1,0 +1,12 @@
+"title"	"code"	"type"	"last update of data"	"last table structure change"	"data start"	"data end"	"values"
+"Database by themes"	"data"	"folder"	" "	" "	" "	" "	
+"    General and regional statistics"	"general"	"folder"	" "	" "	" "	" "	
+"        European and national indicators for short-term analysis"	"euroind"	"folder"	" "	" "	" "	" "	
+"            Balance of payments"	"ei_bp"	"folder"	" "	" "	" "	" "	
+"                Current account - quarterly data"	"ei_bpm6ca_q"	"table"	"02.10.2026"	"02.10.2026"	"1991-Q1"	"2026-Q2"	314789
+"                Financial account - quarterly data"	"ei_bpm6fa_q"	"table"	"02.10.2026"	"01.10.2026"	"1991-Q1"	"2026-Q2"	55918
+"                Current account - monthly data"	"ei_bpm6ca_m"	"table"	"18.09.2026"	"18.09.2026"	"1991-01"	"2026-07"	260325
+"                Financial account - monthly data"	"ei_bpm6fa_m"	"table"	"18.09.2026"	"18.09.2026"	"1991-01"	"2026-07"	89327
+"                International investment position - quarterly data"	"ei_bpm6iip_q"	"table"	"02.10.2026"	"02.10.2026"	"1992-Q4"	"2026-Q2"	70743
+"            Business and consumer surveys"	"ei_bcs"	"folder"	" "	" "	" "	" "	
+"                Business and consumer survey - composite indicators"	"ei_bcs_mi"	"folder"	" "	" "	" "	" "	
