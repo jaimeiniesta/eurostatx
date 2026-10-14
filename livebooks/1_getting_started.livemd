@@ -29,97 +29,67 @@ require Explorer.DataFrame
 Eurostatx.Telemetry.Logger.attach(level: :info)
 ```
 
-## Datasets and Dimensions
+## Your First Data Frame
 
 Datasets are identified by their **online data code**, shown next to their title in the Eurostat
 website and in the [Data Browser](https://ec.europa.eu/eurostat/databrowser). We'll start with
 `prc_hicp_minr`, the Harmonised Index of Consumer Prices (HICP), the measure of inflation of the
 European Central Bank.
 
-A dataset has several **dimensions**. `Eurostatx.Datasets.values/2` lists them, with the codes used
-by the dataset and their labels:
-
-```elixir
-{:ok, dimensions} = Eurostatx.Datasets.values("prc_hicp_minr")
-
-for dimension <- dimensions do
-  %{
-    id: dimension["id"],
-    name: dimension["name"],
-    values: length(dimension["values"]),
-    examples: dimension["values"] |> Enum.take(4) |> Enum.map_join(", ", & &1["code"])
-  }
-end
-```
-
-So, to get the annual rate of change (`unit: "RCH_A"`) of the all-items index
-(`coicop18: "TOTAL"`) we filter by those codes. Let's see what the units are:
-
-```elixir
-dimensions |> Enum.find(&(&1["id"] == "unit")) |> Map.fetch!("values")
-```
-
-## The Statistics API
-
-`Eurostatx.Statistics.data/2` queries the Statistics API, which returns
-[JSON-stat](https://json-stat.org) with labels in English, French or German. Filters are given by
-dimension code, in any order, and several values of a dimension are combined with OR:
-
-```elixir
-{:ok, json} =
-  Eurostatx.Statistics.data("prc_hicp_minr",
-    filters: [geo: "EA", unit: "RCH_A", coicop18: "TOTAL"],
-    last_periods: 3
-  )
-
-Map.take(json, ["label", "id", "size", "value", "status", "updated"])
-```
-
-JSON-stat is a cube: `"value"` holds the observations by position and `"status"` their flags
-(`"e"` estimated, `"p"` provisional...). Most of the time you'll want an `Explorer.DataFrame`, with
-one row per observation:
+This is the first chart of the [demo](https://jaimeiniesta.com/en/eurostatx): the annual rate of
+change (`unit: "RCH_A"`) of all items (`coicop18: "TOTAL"`) in the EU and its four largest
+economies, month by month since 2015. With `shape: :wide` you get a `date` column plus one column
+per country:
 
 ```elixir
 Eurostatx.Statistics.data_as_data_frame!("prc_hicp_minr",
-  filters: [geo: ["EA", "DE"], unit: "RCH_A", coicop18: "TOTAL"],
-  last_periods: 3,
-  labels: true
+  filters: [geo: ["EU27_2020", "DE", "FR", "IT", "ES"], unit: "RCH_A", coicop18: "TOTAL"],
+  start_period: "2015-01",
+  shape: :wide
 )
 ```
 
 The `date` column has the first day of each period (here, months), so it is ready for charts.
 
-## Wide Data Frames and Charts
+## Long Data Frames and Charts
 
-With `shape: :wide` you get a `date` column plus one column per series, named after the codes that
-vary between them, just like `Fred.Series.observations_as_data_frame/2`:
+Without `shape: :wide` you get one row per observation, which is more convenient for charts with
+several series. `labels: true` adds the labels of the codes:
 
 ```elixir
 inflation =
   Eurostatx.Statistics.data_as_data_frame!("prc_hicp_minr",
-    filters: [geo: ["EA", "DE", "FR", "ES", "IT"], unit: "RCH_A", coicop18: "TOTAL"],
-    start_period: "2019-01",
-    shape: :wide
-  )
-```
-
-For charts with several series the long format is more convenient:
-
-```elixir
-long =
-  Eurostatx.Statistics.data_as_data_frame!("prc_hicp_minr",
-    filters: [geo: ["EA", "DE", "FR", "ES", "IT"], unit: "RCH_A", coicop18: "TOTAL"],
-    start_period: "2019-01",
+    filters: [geo: ["EU27_2020", "DE", "FR", "IT", "ES"], unit: "RCH_A", coicop18: "TOTAL"],
+    start_period: "2015-01",
     labels: true
   )
 
-Vl.new(width: 700, height: 300, title: "HICP - annual rate of change (%)")
-|> Vl.data_from_values(DF.select(long, ["date", "geo_label", "value"]))
+Vl.new(width: 700, height: 300, title: "Inflation (%)")
+|> Vl.data_from_values(DF.select(inflation, ["date", "geo_label", "value"]))
 |> Vl.mark(:line)
 |> Vl.encode_field(:x, "date", type: :temporal, title: nil)
-|> Vl.encode_field(:y, "value", type: :quantitative, title: "%")
+|> Vl.encode_field(:y, "value", type: :quantitative, title: nil)
 |> Vl.encode_field(:color, "geo_label", type: :nominal, title: nil)
 ```
+
+## Finding the Codes
+
+Where do `unit: "RCH_A"` and `coicop18: "TOTAL"` come from? A dataset has several **dimensions**,
+and `Eurostatx.Datasets.values/2` lists them with the codes used by the dataset and their labels:
+
+```elixir
+{:ok, dimensions} = Eurostatx.Datasets.values("prc_hicp_minr")
+
+Enum.map(dimensions, &%{id: &1["id"], name: &1["name"], values: length(&1["values"])})
+```
+
+These are the units:
+
+```elixir
+dimensions |> Enum.find(&(&1["id"] == "unit")) |> Map.fetch!("values")
+```
+
+The *Exploring Datasets* notebook shows how to find datasets and explore them.
 
 ## Time Filters
 
@@ -128,7 +98,7 @@ Vl.new(width: 700, height: 300, title: "HICP - annual rate of change (%)")
 
 ```elixir
 Eurostatx.Statistics.data_as_data_frame!("prc_hicp_minr",
-  filters: [geo: "EA", unit: "RCH_A", coicop18: "TOTAL"],
+  filters: [geo: "EU27_2020", unit: "RCH_A", coicop18: "TOTAL"],
   time: ["2024-12", "2025-12"]
 )
 ```
@@ -148,22 +118,20 @@ Eurostatx.Statistics.data_as_data_frame!("prc_hicp_minr",
 |> DF.select(["geo_label", "coicop18_label", "time", "value"])
 ```
 
-## Regional Data
+## The Raw Response
 
-The `geo` dimension of regional datasets has countries and regions of the
-[NUTS classification](https://ec.europa.eu/eurostat/web/nuts). `geo_level` selects a level:
+`Eurostatx.Statistics.data/2` returns the response of the Statistics API untouched:
+[JSON-stat](https://json-stat.org), a cube where `"value"` holds the observations by position and
+`"status"` their flags (`"e"` estimated, `"p"` provisional...):
 
 ```elixir
-"nama_10r_2gdp"
-|> Eurostatx.Statistics.data_as_data_frame!(
-  filters: [unit: "PPS_EU27_2020_HAB"],
-  geo_level: :nuts2,
-  last_periods: 1,
-  labels: true
-)
-|> DF.sort_by(desc: value)
-|> DF.select(["geo", "geo_label", "time", "value"])
-|> DF.head(10)
+{:ok, json} =
+  Eurostatx.Statistics.data("prc_hicp_minr",
+    filters: [geo: "EU27_2020", unit: "RCH_A", coicop18: "TOTAL"],
+    last_periods: 3
+  )
+
+Map.take(json, ["label", "id", "size", "value", "status", "updated"])
 ```
 
 ## Errors and Discontinued Datasets
@@ -183,7 +151,8 @@ Eurostatx.Statistics.data("prc_hicp_minr", time: 2024, last_periods: 3)
 Beware of **discontinued datasets**: when a classification changes, Eurostat publishes new datasets
 and stops updating the old ones, which keep answering with their historical data. The HICP based on
 COICOP 1999 (`prc_hicp_manr`) was replaced by the one based on ECOICOP ver.2 (`prc_hicp_minr`) in
-2026. Check the latest period of a dataset with `Eurostatx.Datasets.summary/1`:
+
+1. Check the latest period of a dataset with `Eurostatx.Datasets.summary/1`:
 
 ```elixir
 for dataset <- ["prc_hicp_manr", "prc_hicp_minr"] do
@@ -192,4 +161,5 @@ for dataset <- ["prc_hicp_manr", "prc_hicp_minr"] do
 end
 ```
 
-Head to the *Exploring Datasets* notebook to learn how to find the data you need.
+Head to *Exploring Datasets* to learn how to find the data you need, or to *The EU in Charts* for
+the rest of the charts of the demo.

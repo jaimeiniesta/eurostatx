@@ -1,0 +1,328 @@
+# The EU in Charts
+
+```elixir
+Mix.install([
+  # To try a local checkout use {:eurostatx, path: Path.join(__DIR__, "..")} instead
+  {:eurostatx, "~> 0.1"},
+  {:kino_explorer, "~> 0.1"},
+  {:kino_vega_lite, "~> 0.1"}
+])
+```
+
+## Introduction
+
+The countries of the European Union side by side: prices, jobs, the economy, energy and population.
+These are the charts of the [Eurostatx demo](https://jaimeiniesta.com/en/eurostatx), made with the
+same calls and drawn with [VegaLite](https://hexdocs.pm/vega_lite).
+
+```elixir
+alias Explorer.DataFrame, as: DF
+alias Explorer.Series
+alias VegaLite, as: Vl
+
+require Explorer.DataFrame
+
+eu = ~w(BE BG CZ DK DE EE IE EL ES FR HR IT CY LV LT LU HU MT NL AT PL PT RO SI SK FI SE)
+```
+
+Most charts compare the 27 member states in the latest period. Countries publish their figures at
+different times, so we ask for the last two periods and keep the latest one that all of them have
+published: the earliest of the latest periods of each country. `by_country` does that and draws the
+bars, with a line for the EU as a whole (`EU27_2020`):
+
+```elixir
+latest = fn df ->
+  df = DF.filter(df, not is_nil(value))
+  period = df |> DF.group_by("geo") |> DF.summarise(date: max(date)) |> DF.pull("date") |> Series.min()
+  DF.filter(df, date == ^period)
+end
+
+by_country = fn df, title ->
+  df = latest.(df)
+  period = df |> DF.pull("time") |> Series.first()
+  countries = df |> DF.filter(geo != "EU27_2020") |> DF.select(["geo_label", "value"])
+  eu_total = df |> DF.filter(geo == "EU27_2020") |> DF.select(["value"])
+
+  Vl.new(width: 700, height: 300, title: "#{title}, #{period}")
+  |> Vl.layers([
+    Vl.new()
+    |> Vl.data_from_values(countries)
+    |> Vl.mark(:bar)
+    |> Vl.encode_field(:x, "geo_label", type: :nominal, sort: "-y", title: nil)
+    |> Vl.encode_field(:y, "value", type: :quantitative, title: nil)
+    |> Vl.encode(:tooltip, [[field: "geo_label"], [field: "value"]]),
+    Vl.new()
+    |> Vl.data_from_values(eu_total)
+    |> Vl.mark(:rule, color: :firebrick, stroke_width: 2)
+    |> Vl.encode_field(:y, "value", type: :quantitative)
+  ])
+end
+```
+
+## Prices
+
+**Inflation**: the annual change of the harmonised index of consumer prices (HICP) in the EU and its
+four largest economies, month by month since 2015.
+
+```elixir
+inflation =
+  Eurostatx.Statistics.data_as_data_frame!("prc_hicp_minr",
+    filters: [geo: ["EU27_2020", "DE", "FR", "IT", "ES"], unit: "RCH_A", coicop18: "TOTAL"],
+    start_period: "2015-01",
+    labels: true
+  )
+
+Vl.new(width: 700, height: 300, title: "Inflation (%)")
+|> Vl.data_from_values(DF.select(inflation, ["date", "geo_label", "value"]))
+|> Vl.mark(:line)
+|> Vl.encode_field(:x, "date", type: :temporal, title: nil)
+|> Vl.encode_field(:y, "value", type: :quantitative, title: nil)
+|> Vl.encode_field(:color, "geo_label", type: :nominal, title: nil)
+```
+
+**Inflation by country**, in the latest month:
+
+```elixir
+"prc_hicp_minr"
+|> Eurostatx.Statistics.data_as_data_frame!(
+  filters: [geo: ["EU27_2020" | eu], unit: "RCH_A", coicop18: "TOTAL"],
+  last_periods: 2,
+  labels: true
+)
+|> by_country.("Inflation (%)")
+```
+
+**House prices**: annual change of house prices, new and existing homes together, in the latest
+quarter.
+
+```elixir
+"prc_hpi_q"
+|> Eurostatx.Statistics.data_as_data_frame!(
+  filters: [geo: ["EU27_2020" | eu], purchase: "TOTAL", unit: "RCH_A"],
+  last_periods: 2,
+  labels: true
+)
+|> by_country.("House prices, annual change (%)")
+```
+
+## Jobs
+
+**Unemployment**: the unemployment rate, seasonally adjusted, since 2008.
+
+```elixir
+unemployment =
+  Eurostatx.Statistics.data_as_data_frame!("une_rt_m",
+    filters: [
+      geo: ["EU27_2020", "DE", "FR", "IT", "ES"],
+      age: "TOTAL",
+      sex: "T",
+      unit: "PC_ACT",
+      s_adj: "SA"
+    ],
+    start_period: "2008-01",
+    labels: true
+  )
+
+Vl.new(width: 700, height: 300, title: "Unemployment rate (%)")
+|> Vl.data_from_values(DF.select(unemployment, ["date", "geo_label", "value"]))
+|> Vl.mark(:line)
+|> Vl.encode_field(:x, "date", type: :temporal, title: nil)
+|> Vl.encode_field(:y, "value", type: :quantitative, title: nil)
+|> Vl.encode_field(:color, "geo_label", type: :nominal, title: nil)
+```
+
+**Unemployment by country**, in the latest month:
+
+```elixir
+unemployment_by_country =
+  Eurostatx.Statistics.data_as_data_frame!("une_rt_m",
+    filters: [geo: ["EU27_2020" | eu], age: "TOTAL", sex: "T", unit: "PC_ACT", s_adj: "SA"],
+    last_periods: 2,
+    labels: true
+  )
+
+by_country.(unemployment_by_country, "Unemployment rate (%)")
+```
+
+**The map of unemployment.** The country borders come from
+[GISCO](https://ec.europa.eu/eurostat/web/gisco), the geographic information service of Eurostat,
+which identifies countries with the same codes as the `geo` dimension (`EL` for Greece). The map has
+two layers: every country in grey, and on top the EU countries, joined with their rates by the
+`lookup` transform:
+
+```elixir
+borders = "https://gisco-services.ec.europa.eu/distribution/v2/nuts/topojson/NUTS_RG_20M_2024_4326_LEVL_0.json"
+rates = unemployment_by_country |> latest.() |> DF.select(["geo", "geo_label", "time", "value"])
+
+Vl.new(width: 600, height: 500, title: "Unemployment rate (%)")
+|> Vl.data_from_url(borders, format: [type: :topojson, feature: "NUTS_RG_20M_2024_4326"])
+|> Vl.projection(type: :azimuthal_equal_area, rotate: [-10, -52], scale: 700)
+|> Vl.layers([
+  Vl.new()
+  |> Vl.mark(:geoshape, fill: "#ddd", stroke: :white, clip: true),
+  Vl.new()
+  |> Vl.transform(
+    lookup: "id",
+    from: [data: [values: DF.to_rows(rates)], key: "geo", fields: ["geo_label", "time", "value"]]
+  )
+  |> Vl.mark(:geoshape, stroke: :white, clip: true)
+  |> Vl.encode_field(:color, "value", type: :quantitative, scale: [scheme: :reds], title: "%")
+  |> Vl.encode(:tooltip, [[field: "geo_label"], [field: "time"], [field: "value"]])
+])
+```
+
+**Youth unemployment**: the unemployment rate of people under 25, in the countries that publish it
+every month.
+
+```elixir
+"une_rt_m"
+|> Eurostatx.Statistics.data_as_data_frame!(
+  filters: [geo: ["EU27_2020" | eu], age: "Y_LT25", sex: "T", unit: "PC_ACT", s_adj: "SA"],
+  last_periods: 2,
+  labels: true
+)
+|> by_country.("Youth unemployment rate (%)")
+```
+
+## Economy
+
+**Economic growth**: the annual change of the EU's gross domestic product (GDP) in volume, quarter
+by quarter since 2008. The bars below zero are the recessions.
+
+```elixir
+growth =
+  Eurostatx.Statistics.data_as_data_frame!("namq_10_gdp",
+    filters: [geo: "EU27_2020", unit: "CLV_PCH_SM", s_adj: "SCA", na_item: "B1GQ"],
+    start_period: "2008-Q1"
+  )
+
+Vl.new(width: 700, height: 300, title: "GDP growth (%)")
+|> Vl.data_from_values(DF.select(growth, ["date", "time", "value"]))
+|> Vl.mark(:bar)
+|> Vl.encode_field(:x, "date", type: :temporal, title: nil)
+|> Vl.encode_field(:y, "value", type: :quantitative, title: nil)
+|> Vl.encode(:color, condition: [test: "datum.value < 0", value: :firebrick], value: :steelblue)
+|> Vl.encode(:tooltip, [[field: "time"], [field: "value"]])
+```
+
+**GDP per person** in purchasing power standards, which take out the differences in prices between
+countries, with the EU at 100:
+
+```elixir
+"tec00114"
+|> Eurostatx.Statistics.data_as_data_frame!(filters: [geo: ["EU27_2020" | eu]], last_periods: 2, labels: true)
+|> by_country.("GDP per person (EU = 100)")
+```
+
+**Public debt**: general government gross debt as a share of GDP, at the end of the latest year. The
+Maastricht treaty sets the limit at 60%.
+
+```elixir
+"gov_10dd_edpt1"
+|> Eurostatx.Statistics.data_as_data_frame!(
+  filters: [geo: ["EU27_2020" | eu], na_item: "GD", sector: "S13", unit: "PC_GDP"],
+  last_periods: 2,
+  labels: true
+)
+|> by_country.("Public debt (% of GDP)")
+```
+
+**Minimum wage**: the gross monthly minimum wage in euros. Austria, Denmark, Finland, Italy and
+Sweden have no national minimum wage: their values are `nil`, and `by_country` leaves them out.
+
+```elixir
+"earn_mw_cur"
+|> Eurostatx.Statistics.data_as_data_frame!(filters: [geo: eu, currency: "EUR"], last_periods: 2, labels: true)
+|> by_country.("Minimum wage (euros per month)")
+```
+
+## Energy
+
+**Renewable energy**: the share of renewable sources in gross final energy consumption.
+
+```elixir
+"nrg_ind_ren"
+|> Eurostatx.Statistics.data_as_data_frame!(
+  filters: [geo: ["EU27_2020" | eu], nrg_bal: "REN", unit: "PC"],
+  last_periods: 2,
+  labels: true
+)
+|> by_country.("Renewable energy (% of consumption)")
+```
+
+**Electricity prices** for households with a medium consumption (2,500 to 5,000 kWh a year), taxes
+included, in the latest half-year:
+
+```elixir
+"nrg_pc_204"
+|> Eurostatx.Statistics.data_as_data_frame!(
+  filters: [
+    geo: ["EU27_2020" | eu],
+    siec: "E7000",
+    nrg_cons: "KWH2500-4999",
+    unit: "KWH",
+    tax: "I_TAX",
+    currency: "EUR"
+  ],
+  last_periods: 2,
+  labels: true
+)
+|> by_country.("Electricity prices (euros per kWh)")
+```
+
+## Population
+
+**Population pyramid**: people living in the EU by sex and age on 1 January of the latest year. The
+`age` codes are `Y_LT1` (less than one year), `Y1`... `Y99`, `Y_OPEN` (100 or more), `TOTAL` and
+`UNK` (unknown): we keep 0 to 99 and draw men to the left.
+
+```elixir
+population =
+  Eurostatx.Statistics.data_as_data_frame!("demo_pjan",
+    filters: [geo: "EU27_2020", sex: ["M", "F"], unit: "NR"],
+    last_periods: 1,
+    labels: true
+  )
+
+pyramid =
+  population
+  |> DF.mutate(age: replace(age, "Y_LT1", "Y0"))
+  |> DF.filter(re_contains(age, ~S/^Y\d+$/))
+  |> DF.mutate(
+    age: cast(replace(age, "Y", ""), :integer),
+    people: select(sex == "M", value * -1, value)
+  )
+  |> DF.select(["age", "sex_label", "people"])
+
+Vl.new(width: 600, height: 500, title: "Population of the EU by age")
+|> Vl.data_from_values(pyramid)
+|> Vl.mark(:bar)
+|> Vl.encode_field(:y, "age", type: :ordinal, sort: :descending, title: nil, axis: [values: Enum.to_list(0..90//10)])
+|> Vl.encode_field(:x, "people", type: :quantitative, title: nil, axis: [label_expr: "format(abs(datum.value), ',')"])
+|> Vl.encode_field(:color, "sex_label", type: :nominal, title: nil)
+```
+
+**Children per woman**: the average number of children a woman would have at the fertility rates of
+the latest year. At 2.1 a population replaces itself.
+
+```elixir
+"demo_find"
+|> Eurostatx.Statistics.data_as_data_frame!(
+  filters: [geo: ["EU27_2020" | eu], indic_de: "TOTFERRT"],
+  last_periods: 2,
+  labels: true
+)
+|> by_country.("Children per woman")
+```
+
+**Life expectancy** at birth, men and women together:
+
+```elixir
+"demo_mlexpec"
+|> Eurostatx.Statistics.data_as_data_frame!(
+  filters: [geo: ["EU27_2020" | eu], sex: "T", age: "Y_LT1", unit: "YR"],
+  last_periods: 2,
+  labels: true
+)
+|> by_country.("Life expectancy at birth (years)")
+```

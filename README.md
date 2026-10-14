@@ -27,9 +27,7 @@ Eurostatx covers every API described in the
 [Eurostat API guides](https://ec.europa.eu/eurostat/web/user-guides/data-browser/api-data-access):
 Statistics, SDMX 3.0 and 2.1 (data and structure queries), Catalogue, asynchronous and files APIs,
 for Eurostat, Comext/Prodcom and the other Directorates-General of the European Commission
-(REDISSTAT). Like [Inex](https://hex.pm/packages/inex), it follows the design of
-[Fred](https://hex.pm/packages/fred), and it has been cross-checked against
-[restatapi](https://github.com/eurostat/restatapi).
+(REDISSTAT). It has been cross-checked against [restatapi](https://github.com/eurostat/restatapi).
 
 **[See the demo](https://jaimeiniesta.com/en/eurostatx):** the countries of the European Union side
 by side (prices, jobs, economy, energy, population), each chart with the Eurostatx call that fetched
@@ -48,6 +46,7 @@ its data.
 - [Configuration](#configuration)
 - [Telemetry](#telemetry)
 - [Testing](#testing)
+- [Contributing](#contributing)
 
 ## Installation
 
@@ -69,8 +68,7 @@ Mix.install([{:eurostatx, "~> 0.1.0"}])
 
 ## Quick Start
 
-Get the annual inflation rate of the euro area and four countries, one column per country, just like
-`Fred.Series.observations_as_data_frame/2`:
+Get the annual inflation rate of the euro area and four countries, one column per country:
 
 ```elixir
 iex> "prc_hicp_minr"
@@ -288,7 +286,7 @@ The `livebooks/` directory contains interactive [Livebook](https://livebook.dev)
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | [`1_getting_started.livemd`](./livebooks/1_getting_started.livemd)            | Statistics API, data frames, wide and long shapes, first charts    |
 | [`2_exploring_datasets.livemd`](./livebooks/2_exploring_datasets.livemd)      | Table of contents, dataset structure, code lists, SDMX queries and formats |
-| [`3_european_economy.livemd`](./livebooks/3_european_economy.livemd)          | Inflation, unemployment and GDP growth across the EU, regional disparities |
+| [`3_eu_in_charts.livemd`](./livebooks/3_eu_in_charts.livemd)                  | The charts of the [demo](https://jaimeiniesta.com/en/eurostatx): prices, jobs, economy, energy and population, with a map |
 
 ## Configuration
 
@@ -337,6 +335,16 @@ structures and code lists, and the table of contents.
 The [CI workflow](https://github.com/jaimeiniesta/eurostatx/actions) checks formatting, Credo and
 [Sobelow](https://github.com/nccgroup/sobelow), and runs the unit tests on Elixir 1.18, 1.19 and 1.20.
 
+## Contributing
+
+Contributions are welcome: bug reports, ideas, documentation, examples and pull requests. For bigger
+changes, open an issue first so that we can discuss them. Before sending a pull request, run
+`mix format`, `mix credo --strict` and `mix test`.
+
+You can use AI tools, as long as a human creates and supervises each issue and pull request and
+answers for its content and its review. Coding agents will find instructions in
+[AGENTS.md](https://github.com/jaimeiniesta/eurostatx/blob/master/AGENTS.md).
+
 ## Acknowledgements
 
 - [Fred](https://github.com/akoutmos/fred), whose interface Eurostatx follows, and
@@ -349,11 +357,3 @@ The [CI workflow](https://github.com/jaimeiniesta/eurostatx/actions) checks form
 ## License
 
 MIT
-
-## Artificial Intelligence
-
-Contributions made with the help of AI tools are welcome. However, every issue and pull request
-must be created and supervised by a human, who is responsible for its content and for following up
-on the review.
-
-AI coding agents will find instructions about this repository in [AGENTS.md](https://github.com/jaimeiniesta/eurostatx/blob/master/AGENTS.md).

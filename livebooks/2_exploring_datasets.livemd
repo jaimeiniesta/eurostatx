@@ -31,7 +31,8 @@ toc |> Enum.take(15) |> Eurostatx.DataFrame.from_records()
 ```
 
 `Eurostatx.Catalogue.search/2` finds datasets and tables by code or title. Pass the table of
-contents to avoid downloading it again:
+contents to avoid downloading it again. This is how we'd find `une_rt_m`, the monthly unemployment
+rate of the [demo](https://jaimeiniesta.com/en/eurostatx/jobs):
 
 ```elixir
 {:ok, results} = Eurostatx.Catalogue.search("unemployment", toc: toc)
@@ -146,31 +147,6 @@ IO.puts(tsv)
 Eurostatx.DataFrame.from_tsv(tsv)
 ```
 
-With SDMX-CSV 2.0 the labels can be added as columns:
-
-```elixir
-{:ok, csv} =
-  Eurostatx.Data.get("une_rt_m",
-    key: "M.SA.TOTAL.PC_ACT.T.ES",
-    last_n: 2,
-    format: :csv,
-    labels: :name,
-    language: :de
-  )
-
-IO.puts(csv)
-```
-
-## Other Structural Metadata
-
-`Eurostatx.Structure.get/3` returns any SDMX artefact as it is, for example the concept scheme of a
-dataset, which has the labels of its dimensions:
-
-```elixir
-{:ok, xml} = Eurostatx.Structure.get(:conceptscheme, "UNE_RT_M")
-String.slice(xml, 0, 1500)
-```
-
 ## Latest Updates
 
 The RSS feed lists the datasets and code lists created, updated or deleted in the last 7 days:
@@ -183,29 +159,6 @@ items |> Eurostatx.DataFrame.from_records() |> DF.select(["pub_date", "code", "c
 
 ## Big Extractions
 
-Extractions above 500,000 cells are processed asynchronously by Eurostat. Eurostatx waits for them
-transparently. With `async_timeout: 0` you get the key of the request and can fetch the data later
-with `Eurostatx.Async.await/2`. Comext datasets (`DS-` codes) are big, so this query is usually
-asynchronous (unless Eurostat has it cached):
-
-```elixir
-result =
-  Eurostatx.Data.get("DS-045409",
-    key: "A.FI.CA..2.SUPPLEMENTARY_QUANTITY",
-    sdmx_version: "2.1",
-    format: :csv,
-    async_timeout: 0
-  )
-
-csv =
-  case result do
-    {:ok, csv} -> csv
-    {:error, %Eurostatx.Error{type: :queued, request_id: id}} ->
-      {:ok, csv} = Eurostatx.Async.await(id, agency: :comext)
-      csv
-  end
-
-csv |> Eurostatx.DataFrame.from_csv() |> DF.head(5)
-```
-
-Eurostat asks to make **one request at a time**, and Eurostatx never makes concurrent requests.
+Extractions above 500,000 cells are processed asynchronously by Eurostat, and Eurostatx waits for
+them transparently. Eurostat asks to make **one request at a time**, and Eurostatx never makes
+concurrent requests.

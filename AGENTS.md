@@ -7,9 +7,8 @@ Instructions for AI coding agents working on this repository.
 Eurostatx is an Elixir client for the [Eurostat APIs](https://ec.europa.eu/eurostat/web/user-guides/data-browser/api-data-access)
 (`https://ec.europa.eu/eurostat/api/dissemination/...`): Statistics, SDMX 3.0 and 2.1 (data and
 structure queries), Catalogue, asynchronous and files APIs, for Eurostat, Comext/Prodcom and the
-REDISSTAT agencies. Its interface follows [Fred](https://hex.pm/packages/fred) and
-[Inex](https://hex.pm/packages/inex), and returns the decoded JSON, the raw body or Explorer data
-frames.
+REDISSTAT agencies. Its interface follows [Inex](https://hex.pm/packages/inex), and returns the
+decoded JSON, the raw body or Explorer data frames.
 
 - **Reference implementation:** [restatapi](https://github.com/eurostat/restatapi), the R package
   published by Eurostat in its GitHub organization. When the API behaviour is unclear, check what
@@ -183,5 +182,5 @@ If you touched `Client`, `DataFrame`, `JSONStat`, `TSV`, `SDMX` or option transl
 
 - Commit only when asked.
 - Never open issues or pull requests on your own: a human must create and supervise them (see the
-  "Artificial Intelligence" section of the README).
+  "Contributing" section of the README).
 - Do not add `Co-Authored-By` trailers or any other AI attribution to commit messages.

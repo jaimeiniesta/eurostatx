@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Livebooks: *The EU in Charts* replaces *The European Economy* and reproduces the charts of the
+  [demo](https://jaimeiniesta.com/en/eurostatx), map included. *Getting Started* and *Exploring
+  Datasets* are simpler.
+
 ## v0.1.0
 
 Initial release.
@@ -11,7 +15,7 @@ Initial release.
   APIs.
 - Eurostat, Comext/Prodcom (selected automatically for `DS-` datasets) and the REDISSTAT agencies
   (`:ecfin`, `:empl`, `:grow`, `:taxud`).
-- Fred-like interface: `Eurostatx.Statistics.data_as_data_frame/2` and
+- Data frames: `Eurostatx.Statistics.data_as_data_frame/2` and
   `Eurostatx.Data.get_as_data_frame/2`, with long (tidy) and wide data frames, labels in English,
   French or German, and dates for every period type.
 - Validated, documented options (`NimbleOptions`) translated into the parameters of each API:
