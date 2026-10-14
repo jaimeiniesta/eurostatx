@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## v0.1.1
+
+- Link to the [demo](https://jaimeiniesta.com/en/eurostatx) from the README, the docs and Hex.
 - Livebooks: *The EU in Charts* replaces *The European Economy* and reproduces the charts of the
   [demo](https://jaimeiniesta.com/en/eurostatx), map included. *Getting Started* and *Exploring
   Datasets* are simpler.
