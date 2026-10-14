@@ -6,6 +6,7 @@
   <a href="https://github.com/jaimeiniesta/eurostatx/actions/workflows/ci.yml"><img src="https://github.com/jaimeiniesta/eurostatx/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://hex.pm/packages/eurostatx"><img src="https://img.shields.io/hexpm/v/eurostatx.svg" alt="Hex version"></a>
   <a href="https://hexdocs.pm/eurostatx"><img src="https://img.shields.io/badge/hex-docs-4e2a8e.svg" alt="Documentation"></a>
+  <a href="https://jaimeiniesta.com/en/eurostatx"><img src="https://img.shields.io/badge/demo-live-4e2a8e.svg" alt="Demo"></a>
   <a href="https://github.com/jaimeiniesta/eurostatx/blob/master/LICENSE"><img src="https://img.shields.io/hexpm/l/eurostatx.svg" alt="License"></a>
 </p>
 
@@ -29,6 +30,10 @@ for Eurostat, Comext/Prodcom and the other Directorates-General of the European 
 (REDISSTAT). Like [Inex](https://hex.pm/packages/inex), it follows the design of
 [Fred](https://hex.pm/packages/fred), and it has been cross-checked against
 [restatapi](https://github.com/eurostat/restatapi).
+
+**[See the demo](https://jaimeiniesta.com/en/eurostatx):** the countries of the European Union side
+by side (prices, jobs, economy, energy, population), each chart with the Eurostatx call that fetched
+its data.
 
 ## Contents
 

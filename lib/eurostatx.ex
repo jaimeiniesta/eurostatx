@@ -9,6 +9,10 @@ defmodule Eurostatx do
   international trade (Comext), industry (Prodcom), regional statistics and
   much more. They are free and do **not** require an API key.
 
+  See the [demo](https://jaimeiniesta.com/en/eurostatx): the countries of the
+  European Union side by side, each chart with the Eurostatx call that
+  fetched its data.
+
   ## Run Your First Query
 
       iex> Eurostatx.Statistics.data_as_data_frame!("nama_10_gdp",

@@ -55,6 +55,7 @@ defmodule Eurostatx.MixProject do
       licenses: ["MIT"],
       links: %{
         "GitHub" => @source_url,
+        "Demo" => "https://jaimeiniesta.com/en/eurostatx",
         "Eurostat API" =>
           "https://ec.europa.eu/eurostat/web/user-guides/data-browser/api-data-access"
       }
